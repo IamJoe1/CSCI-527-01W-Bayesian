@@ -1,0 +1,18 @@
+In this project, you are given a database of transforming robots.
+
+Each robot has 4 attributes: eye color, alternate mode, special skill, and faction.
+The eye color may be red, blue, or yellow.
+The alternate mode may be truck, car, jet, or animal.
+The special skill may be repair, scout, supply, or attack.
+The faction may be good or evil.
+
+Implement a program using Naive Bayes classifier to predict the faction of the robots.
+You may only use C/C++ programming language to implement the program. You should not use any third party libraries.
+
+The training data and test data are provided. In the data, each line is a record, and the attributes are separated by "," comma.
+After you complete the program, please write a report. The report should include the followings:
+(1) The contribution of each member in your group.
+(2) Brief summary of how you implemented the program.
+(3) The error rate of the test data.
+
+The due date of the project is the Monday of the final week. Please put your source code and report in a single zip file and upload it to the submission folder.
