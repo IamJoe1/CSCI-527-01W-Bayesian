@@ -1,17 +1,15 @@
-#include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
 #include <map>
-#include <string>
 #include <set>
+#include <string>
 #include <cmath>
+#include <algorithm>
+#include <random>
 
 using namespace std;
-
-/**
- *  Run:
- *      g++ -std=c++11 -o models/naive_bayes_joecruz models/naive_bayes_joecruz.cpp
- *      ./models/naive_bayes_joecruz
- *  */
 
 struct Sample
 {
@@ -20,27 +18,29 @@ struct Sample
 };
 
 class NaiveBayesClassifier
-
 {
 private:
-    vector<Sample> trainingData;
     map<string, int> classCounts;
     map<string, vector<map<string, int>>> featureCounts;
     set<string> labels;
     int numFeatures = 0;
+    int totalSamples = 0;
 
-    double calculateLogProbability(const string &label, const vector<string> &input)
+    double calculateLogProbability(const string &label, const vector<string> &input) const
     {
-        double logProb = log((double)classCounts[label] / trainingData.size());
+        double logProb = log((double)classCounts.at(label) / totalSamples);
         for (int i = 0; i < numFeatures; ++i)
         {
-            int count = featureCounts[label][i][input[i]];
+            const auto &featureMap = featureCounts.at(label)[i];
+            int count = featureMap.count(input[i]) ? featureMap.at(input[i]) : 0;
+
             int total = 0;
-            for (const auto &p : featureCounts[label][i])
+            for (const auto &p : featureMap)
             {
                 total += p.second;
             }
-            double prob = (count + 1.0) / (total + featureCounts[label][i].size());
+
+            double prob = (count + 1.0) / (total + featureMap.size());
             logProb += log(prob);
         }
         return logProb;
@@ -49,16 +49,19 @@ private:
 public:
     void train(const vector<Sample> &data)
     {
-        trainingData = data;
-        if (trainingData.empty())
+        if (data.empty())
             return;
 
-        numFeatures = trainingData[0].features.size();
+        numFeatures = data[0].features.size();
+        totalSamples = data.size();
+        classCounts.clear();
+        featureCounts.clear();
+        labels.clear();
 
-        for (const auto &sample : trainingData)
+        for (const auto &sample : data)
         {
-            labels.insert(sample.label);
             classCounts[sample.label]++;
+            labels.insert(sample.label);
         }
 
         for (const auto &label : labels)
@@ -66,7 +69,8 @@ public:
             featureCounts[label] = vector<map<string, int>>(numFeatures);
         }
 
-        for (const auto &sample : trainingData)
+        // Count feature frequencies for each class
+        for (const auto &sample : data)
         {
             for (int i = 0; i < numFeatures; ++i)
             {
@@ -75,15 +79,15 @@ public:
         }
     }
 
-    string predict(const vector<string> &input)
+    string predict(const vector<string> &input) const
     {
         string bestLabel;
-        double bestProb = -1.0;
+        double bestProb = -INFINITY;
 
         for (const auto &label : labels)
         {
             double logProb = calculateLogProbability(label, input);
-            if (bestLabel.empty() || logProb > bestProb)
+            if (logProb > bestProb)
             {
                 bestProb = logProb;
                 bestLabel = label;
@@ -94,42 +98,81 @@ public:
     }
 };
 
-vector<string> getUserInput(int numFeatures)
+vector<Sample> loadData(const string &filename)
 {
-    cout << "Welcome to the Naive Bayes Classifier!" << endl;
-    cout << "Features to choose from: sunny, rainy, cloudy, hot, mild, cold" << endl;
-    cout << endl;
-    vector<string> input;
-    cout << "Enter the values for the features (ex: rainy cold): ";
-    string feature;
+    vector<Sample> data;
+    ifstream file(filename);
+    string line;
 
-    for (int i = 0; i < numFeatures; ++i)
+    while (getline(file, line))
     {
-        cin >> feature;
-        input.push_back(feature);
+        stringstream ss(line);
+        string token;
+        Sample sample;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            getline(ss, token, ',');
+            sample.features.push_back(token);
+        }
+
+        getline(ss, token, ',');
+        sample.label = token;
+        data.push_back(sample);
     }
 
-    return input;
+    return data;
+}
+
+void evaluateAccuracy(const NaiveBayesClassifier &nb, const vector<Sample> &testData)
+{
+    int correct = 0;
+    for (const auto &sample : testData)
+    {
+        if (nb.predict(sample.features) == sample.label)
+        {
+            ++correct;
+        }
+    }
+    double accuracy = (double)correct / testData.size() * 100.0;
+    cout << "Accuracy on test data: " << accuracy << "%" << endl;
+}
+
+void splitAndEvaluate(NaiveBayesClassifier &nb, vector<Sample> &allData, double trainRatio)
+{
+    random_device rd;
+    mt19937 g(rd());
+    shuffle(allData.begin(), allData.end(), g);
+
+    size_t trainSize = static_cast<size_t>(allData.size() * trainRatio);
+    vector<Sample> trainingData(allData.begin(), allData.begin() + trainSize);
+    vector<Sample> testData(allData.begin() + trainSize, allData.end());
+
+    cout << "\nUsing " << trainRatio * 100 << "% of the data for training (" << trainingData.size() << " samples)" << endl;
+    nb.train(trainingData);
+    evaluateAccuracy(nb, testData);
 }
 
 int main()
 {
     NaiveBayesClassifier nb;
-    vector<Sample> trainingData = {
-        {{"sunny", "hot"}, "beach"},
-        {{"rainy", "cold"}, "stay_home"},
-        {{"cloudy", "mild"}, "park"},
-        {{"sunny", "mild"}, "hike"},
-        {{"rainy", "mild"}, "museum"},
-        {{"cloudy", "cold"}, "stay_home"},
-        {{"sunny", "cold"}, "skiing"}};
 
-    nb.train(trainingData);
+    const string trainingFile = "data/bayes_training_data.txt";
+    const string testFile = "data/bayes_test_data.txt";
 
-    vector<string> testInput = getUserInput(2);
+    vector<Sample> trainingData = loadData(trainingFile);
+    vector<Sample> testData = loadData(testFile);
 
-    string result = nb.predict(testInput);
-    cout << "Predicted class: " << result << endl;
+    vector<double> trainRatios = {0.4, 0.6, 0.8, 1.0};
+    for (double ratio : trainRatios)
+    {
+        size_t size = static_cast<size_t>(trainingData.size() * ratio);
+        vector<Sample> subset(trainingData.begin(), trainingData.begin() + size);
+
+        cout << "\nUsing " << ratio * 100 << "% of the training data (" << subset.size() << " samples)" << endl;
+        nb.train(subset);
+        evaluateAccuracy(nb, testData);
+    }
 
     return 0;
 }
