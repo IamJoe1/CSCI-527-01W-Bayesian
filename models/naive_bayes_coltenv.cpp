@@ -36,6 +36,10 @@ class NaiveBayes {
 public:
 	void train(const string& filename) {
 		ifstream file(filename);
+        if (!file.is_open()) {
+            cerr << "Failed to open file: " << filename << endl;
+            exit(1);
+        }
 		string line;
 		while (getline(file, line)) {
 			Record r = parse_record(line);
@@ -45,6 +49,9 @@ public:
 			feature_counts["skill"][r.skill][r.faction]++;
 			total_records++;
 		}
+
+        
+        
 	}
 
 	string predict(const Record& r) {
@@ -65,6 +72,10 @@ public:
 
 	void test(const string& filename) {
 		ifstream file(filename);
+        if (!file.is_open()) {
+            cerr << "Failed to open file: " << filename << endl;
+            exit(1);
+        }
 		string line;
 		int total = 0, correct = 0;
 		while (getline(file, line)) {
@@ -75,6 +86,8 @@ public:
 			total++;
 		}
 		cout << "Accuracy: " << (double)correct / total * 100 << "%" << endl;
+
+       
 	}
 
 private:
@@ -106,7 +119,7 @@ private:
 
 int main() {
 	NaiveBayes nb;
-	nb.train("bayes_training_data.txt");
-	nb.test("bayes_test_data.txt");
+	nb.train("./data/bayes_training_data.txt");
+	nb.test("./data/bayes_test_data.txt");
 	return 0;
 }
