@@ -1,0 +1,13 @@
+Uses a generic vector of features, making it flexible and scalable.
+
+Implements Laplace smoothing manually per feature.
+
+Calculates log-probabilities for stability.
+
+Uses a set of labels to avoid hardcoding class names.
+
+Includes train/test split evaluation with varying ratios.
+
+Separates data parsing from model logic.
+
+More modular and extensible than other implementations.

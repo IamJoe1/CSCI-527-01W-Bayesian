@@ -27,7 +27,7 @@ string trim(const string& str) {
 	return str.substr(first, last - first + 1);
 }
 
-// Naive Bayes Classifier
+//Naive Bayes Classifier defintion
 class NaiveBayes {
 	map<string, int> class_counts;
 	map<string, map<string, map<string, int>>> feature_counts;
@@ -107,8 +107,8 @@ private:
 		int count = feature_counts[attr][value][cls];
 		int total_class = class_counts[cls];
 
-		// Laplace smoothing
-		int k = 1; // smoothing factor
+		//Laplace smoothing here 
+		int k = 1;
 		int V = attr == "eye_color" ? eye_colors.size() :
 		        attr == "mode" ? modes.size() :
 		        attr == "skill" ? skills.size() : 0;

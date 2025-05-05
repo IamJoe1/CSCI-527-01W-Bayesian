@@ -1,0 +1,13 @@
+Mkaes use of Robot struct.
+
+Fixed structure (eye_color, etc).
+
+Direct Multiplication (more error prone).
+
+Correct Laplace.
+
+Accuracy with printout.
+
+Struct-based and clean.
+
+Hardcoded label extraction.

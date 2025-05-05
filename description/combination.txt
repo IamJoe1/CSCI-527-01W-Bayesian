@@ -1,0 +1,13 @@
+Accepts feature vectors of arbitrary length.
+
+Dynamically learns class labels and possible feature values.
+
+Uses log-probabilities for numerical stability.
+
+Applies Laplace smoothing.
+
+Includes training, prediction, and accuracy evaluation.
+
+Can be organized into reusable, clean C++ functions and classes.
+
+Easily Adaptable.

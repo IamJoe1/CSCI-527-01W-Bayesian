@@ -1,0 +1,11 @@
+Uses log-probabilities for numerical stability
+
+Reads data directly from file inside the train() and test() methods.
+
+Applies Laplace smoothing with a factor of 1.
+
+Includes a trim() utility to clean string values.
+
+Tracks and prints overall accuracy.
+
+Simple structure: one class, procedural data parsing.
