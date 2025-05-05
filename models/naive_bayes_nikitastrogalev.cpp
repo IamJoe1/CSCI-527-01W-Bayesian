@@ -6,6 +6,15 @@
 #include <string>
 #include <iomanip>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <map>
+#include <vector>
+#include <string>
+#include <cmath>
+using namespace std;
+
 
 
 using namespace std;
@@ -16,6 +25,13 @@ struct Robot {
     string skill;
     string faction;
 };
+
+string trim(const string& str) {
+	size_t first = str.find_first_not_of(" \n\r\t");
+	if (first == string::npos) return "";
+	size_t last = str.find_last_not_of(" \n\r\t");
+	return str.substr(first, last - first + 1);
+}
 
 class NaiveBayesClassifier {
 private:
@@ -82,11 +98,13 @@ vector<Robot> load_data(const string& filepath, bool has_label) {
         getline(ss, eye, ',');
         getline(ss, mode, ',');
         getline(ss, skill, ',');
+        getline(ss, faction);
+		faction = trim(faction);
 
-        if (has_label)
-            getline(ss, faction, '\n');
-        else
-            faction = "";
+        // if (has_label)
+        //     getline(ss, faction);
+        // else
+        //     faction = "";
 
         if (!eye.empty() && !mode.empty() && !skill.empty()) {
             data.push_back({ eye, mode, skill, faction });
@@ -105,12 +123,22 @@ int main() {
     NaiveBayesClassifier classifier;
     classifier.train(training_data);
 
+    int correct_predictions = 0;
+
     cout << "Predictions on Test Data:\n";
     for (const auto& test_robot : test_data) {
         string prediction = classifier.predict(test_robot);
         cout << test_robot.eye_color << "," << test_robot.mode << "," << test_robot.skill
-            << " => " << prediction << "\n";
+            << " => Predicted: " << prediction << ", Actual: " << test_robot.faction << "\n";
+
+        if (prediction == test_robot.faction) {
+            correct_predictions++;
+        }
     }
+
+    double accuracy = (double)correct_predictions / test_data.size() * 100.0;
+    cout << fixed << setprecision(2);
+    cout << "Overall Accuracy: " << accuracy << "%\n";
 
 
     return 0;
